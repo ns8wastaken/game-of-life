@@ -1,41 +1,16 @@
-use std::collections::HashSet;
+mod grid;
+mod coord;
+mod camera;
+
 use raylib::prelude::*;
-
-#[derive(PartialEq, Eq, Hash)]
-pub struct Coord { x: i64, y: i64 }
-
-impl Coord {
-    pub fn new(x: i64, y: i64) -> Self {
-        Self { x, y }
-    }
-}
-
-pub struct Grid {
-    live: HashSet<Coord>,
-}
-
-impl Grid {
-    pub fn new() -> Self {
-        Self { live: HashSet::new() }
-    }
-
-    pub fn spawn(&mut self, pos: Coord) {
-        self.live.insert(pos);
-    }
-
-    pub fn kill(&mut self, pos: Coord) {
-        self.live.remove(&pos);
-    }
-
-    pub fn is_alive(&self, pos: &Coord) -> bool {
-        self.live.contains(pos)
-    }
-}
+use coord::Coord;
+use grid::Grid;
+use camera::Camera;
 
 fn main() {
     let (mut rl, thread) = raylib::init()
-        .size(640, 480)
-        .title("Hello, World")
+        .size(800, 800)
+        .title("Game of Life")
         .build();
 
     let mut grid = Grid::new();
@@ -45,32 +20,49 @@ fn main() {
     grid.spawn(Coord::new(1,1));
     grid.spawn(Coord::new(1,2));
 
-    for y in 0..20 as i64 {
-        for x in 0..20 as i64 {
-            let pos = Coord::new(x - 5, y - 5);
-            if grid.is_alive(&pos) {
-                print!("#");
-            } else {
-                print!(".");
-            }
-        }
-        println!();
-    }
-    println!();
+    let mut camera = Camera::new(0.0, 0.0);
 
     while !rl.window_should_close() {
         let mut d = rl.begin_drawing(&thread);
 
+        if d.is_key_pressed(KeyboardKey::KEY_W) { camera.inc_zoom(); }
+        if d.is_key_pressed(KeyboardKey::KEY_S) { camera.dec_zoom(); }
+
+        let dt = d.get_frame_time() as f64;
+
+        let cam_offset = dt / camera.get_zoom() * 1000.0;
+        if d.is_key_down(KeyboardKey::KEY_RIGHT) { camera.offset(cam_offset, 0.0); }
+        if d.is_key_down(KeyboardKey::KEY_LEFT)  { camera.offset(-cam_offset, 0.0); }
+        if d.is_key_down(KeyboardKey::KEY_DOWN)  { camera.offset(0.0, cam_offset); }
+        if d.is_key_down(KeyboardKey::KEY_UP)    { camera.offset(0.0, -cam_offset); }
+
+        if d.is_mouse_button_down(MouseButton::MOUSE_BUTTON_LEFT) {
+            let md = d.get_mouse_delta();
+            camera.offset(
+                -md.x as f64 / camera.get_zoom(),
+                -md.y as f64 / camera.get_zoom(),
+            );
+        }
+
         d.clear_background(Color::WHITE);
 
-        for y in 0..20 {
-            for x in 0..20 {
-                let pos = Coord::new(x - 5, y - 5);
-                if grid.is_alive(&pos) {
-                    d.draw_rectangle((x as i32 - 5) * 20, (y as i32 - 5) * 20, 20, 20, Color::new(0, 0, 0, 255));
-                } else {
-                }
+        for pos in grid.get_live() {
+            let screen_pos = camera.world_to_screen(&pos);
+
+            if screen_pos.0 < 0 || screen_pos.0 >= d.get_screen_width() { continue; }
+            if screen_pos.1 < 0 || screen_pos.1 >= d.get_screen_height() { continue; }
+
+            if grid.is_alive(&pos) {
+                d.draw_rectangle(
+                    screen_pos.0,
+                    screen_pos.1,
+                    camera.get_zoom() as i32,
+                    camera.get_zoom() as i32,
+                    Color::new(0, 0, 0, 255)
+                );
             }
         }
+
+        grid.step();
     }
 }
