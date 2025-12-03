@@ -38,10 +38,6 @@ impl Camera {
         )
     }
 
-    pub fn cell_to_world(&self, x: i64, y: i64) -> Coord {
-        Coord::new(x + self.x as i64, y + self.y as i64)
-    }
-
     pub fn offset(&mut self, x: f64, y: f64) {
         self.x += x;
         self.y += y;
@@ -50,21 +46,16 @@ impl Camera {
     pub fn inc_zoom(&mut self) {
         if self.zoom_exp >= 5 { return; }
         self.zoom_exp += 1;
-        self.zoom = 2.0f64.powi(self.zoom_exp)
+        self.zoom = 2.0f64.powi(self.zoom_exp);
     }
 
     pub fn dec_zoom(&mut self) {
         self.zoom_exp -= 1;
-        self.zoom = 2.0f64.powi(self.zoom_exp)
+        self.zoom = 2.0f64.powi(self.zoom_exp);
     }
 
     #[inline]
     pub const fn get_zoom(&self) -> f64 {
         self.zoom
-    }
-
-    #[inline]
-    pub const fn get_pos(&self) -> (i64, i64) {
-        (self.x as i64, self.y as i64)
     }
 }

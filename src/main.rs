@@ -25,10 +25,11 @@ fn main() {
     while !rl.window_should_close() {
         let mut d = rl.begin_drawing(&thread);
 
+        let dt = d.get_frame_time() as f64;
+
+        // Camera controls
         if d.is_key_pressed(KeyboardKey::KEY_W) { camera.inc_zoom(); }
         if d.is_key_pressed(KeyboardKey::KEY_S) { camera.dec_zoom(); }
-
-        let dt = d.get_frame_time() as f64;
 
         let cam_offset = dt / camera.get_zoom() * 1000.0;
         if d.is_key_down(KeyboardKey::KEY_RIGHT) { camera.offset(cam_offset, 0.0); }
@@ -36,6 +37,7 @@ fn main() {
         if d.is_key_down(KeyboardKey::KEY_DOWN)  { camera.offset(0.0, cam_offset); }
         if d.is_key_down(KeyboardKey::KEY_UP)    { camera.offset(0.0, -cam_offset); }
 
+        // Move camera when dragging mouse
         if d.is_mouse_button_down(MouseButton::MOUSE_BUTTON_LEFT) {
             let md = d.get_mouse_delta();
             camera.offset(
@@ -46,6 +48,7 @@ fn main() {
 
         d.clear_background(Color::WHITE);
 
+        // Draw the live cells
         for pos in grid.get_live() {
             let screen_pos = camera.world_to_screen(&pos);
 
