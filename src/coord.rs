@@ -40,6 +40,22 @@ impl Neg for Coord {
 
 // -------------------- Arithmetic with scalars --------------------
 
+// Coord + i64
+impl Add<i64> for Coord {
+    type Output = Self;
+    fn add(self, rhs: i64) -> Self::Output {
+        Self { x: self.x + rhs, y: self.y + rhs }
+    }
+}
+
+// Coord - i64
+impl Sub<i64> for Coord {
+    type Output = Self;
+    fn sub(self, rhs: i64) -> Self::Output {
+        Self { x: self.x - rhs, y: self.y - rhs }
+    }
+}
+
 // Coord * i64
 impl Mul<i64> for Coord {
     type Output = Self;

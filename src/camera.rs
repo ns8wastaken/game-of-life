@@ -20,9 +20,24 @@ impl Camera {
         }
     }
 
-    pub fn world_to_screen(&self, pos: &Coord) -> (i32, i32) {
-        let sx = (pos.x - self.x as i64) as f64 * self.zoom;
-        let sy = (pos.y - self.y as i64) as f64 * self.zoom;
+    pub fn world_to_screen(&self, pos: &Coord, screen_size: &(i32, i32)) -> (i32, i32) {
+        // let cx = (screen_size.0 / 2) as f64;
+        // let cy = (screen_size.1 / 2) as f64;
+        // let sx = cx + (pos.x - self.x as i64) as f64 * self.zoom;
+        // let sy = cy + (pos.y - self.y as i64) as f64 * self.zoom;
+        // (sx as i32, sy as i32)
+
+        let cx = (screen_size.0 / 2) as f64;
+        let cy = (screen_size.1 / 2) as f64;
+
+        // Cell difference
+        let dx = pos.x as f64 - self.x.floor();
+        let dy = pos.y as f64 - self.y.floor();
+
+        // Subtract half a cell to align the camera to cell corners
+        let sx = cx + (dx - 0.5) * self.zoom;
+        let sy = cy + (dy - 0.5) * self.zoom;
+
         (sx as i32, sy as i32)
     }
 
@@ -50,6 +65,7 @@ impl Camera {
     }
 
     pub fn dec_zoom(&mut self) {
+        if self.zoom_exp <= 0 { return; }
         self.zoom_exp -= 1;
         self.zoom = 2.0f64.powi(self.zoom_exp);
     }

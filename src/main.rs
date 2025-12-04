@@ -21,11 +21,11 @@ fn main() {
         .build();
 
     let mut grid = Grid::new();
-    grid.spawn(Coord::new(1,0));
-    grid.spawn(Coord::new(2,0));
+    grid.spawn(Coord::new(0,-1));
+    grid.spawn(Coord::new(1,-1));
+    grid.spawn(Coord::new(-1,0));
+    grid.spawn(Coord::new(0,0));
     grid.spawn(Coord::new(0,1));
-    grid.spawn(Coord::new(1,1));
-    grid.spawn(Coord::new(1,2));
 
     let mut camera = Camera::new(0.0, 0.0);
 
@@ -40,8 +40,9 @@ fn main() {
         let dt = d.get_frame_time() as f64;
 
         // Camera controls
-        if d.is_key_pressed(KeyboardKey::KEY_W) { camera.inc_zoom(); }
-        if d.is_key_pressed(KeyboardKey::KEY_S) { camera.dec_zoom(); }
+        let scroll = d.get_mouse_wheel_move_v();
+        if d.is_key_pressed(KeyboardKey::KEY_W) || scroll.y > 0.0 { camera.inc_zoom(); }
+        if d.is_key_pressed(KeyboardKey::KEY_S) || scroll.y < 0.0 { camera.dec_zoom(); }
 
         let cam_zoom = camera.get_zoom();
         let cam_offset = dt / cam_zoom * 1000.0;
@@ -68,12 +69,14 @@ fn main() {
 
         d.clear_background(Color::WHITE);
 
+        let screen_size = (d.get_screen_width(), d.get_screen_height());
+
         // Draw the live cells
         for pos in grid.get_live() {
-            let screen_pos = camera.world_to_screen(&pos);
+            let screen_pos = camera.world_to_screen(&pos, &screen_size);
 
-            if screen_pos.0 < 0 || screen_pos.0 >= d.get_screen_width() { continue; }
-            if screen_pos.1 < 0 || screen_pos.1 >= d.get_screen_height() { continue; }
+            if screen_pos.0 < 0 || screen_pos.0 >= screen_size.0 { continue; }
+            if screen_pos.1 < 0 || screen_pos.1 >= screen_size.1 { continue; }
 
             if grid.is_alive(&pos) {
                 d.draw_rectangle(
