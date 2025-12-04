@@ -21,16 +21,11 @@ fn main() {
         .build();
 
     let mut grid = Grid::new();
-    grid.spawn(Coord::new(0,-1));
-    grid.spawn(Coord::new(1,-1));
-    grid.spawn(Coord::new(-1,0));
-    grid.spawn(Coord::new(0,0));
-    grid.spawn(Coord::new(0,1));
 
     let mut camera = Camera::new(0.0, 0.0);
 
     let mut last_step = Instant::now();
-    let step_interval = Duration::from_millis(200);
+    let step_interval = Duration::from_millis(100);
 
     let mut state = State::Editing;
 
@@ -103,8 +98,15 @@ fn main() {
                     s_pos.1,
                     cam_zoom as i32,
                     cam_zoom as i32,
-                    Color::new(180, 180, 180, 255)
+                    Color::new(200, 200, 200, 255)
                 );
+
+                let cam_zoom_i = cam_zoom as i32;
+                for i in 0..(screen_size.0 / cam_zoom_i) {
+                    let x = i * cam_zoom_i;
+                    d.draw_line(0, x, screen_size.0, x, Color::GRAY);
+                    d.draw_line(x, 0, x, screen_size.1, Color::GRAY);
+                }
 
                 if d.is_mouse_button_down(MouseButton::MOUSE_BUTTON_RIGHT) {
                     grid.spawn(w_pos);

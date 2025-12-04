@@ -20,30 +20,33 @@ impl Camera {
         }
     }
 
+    fn clamp_to_grid(&self, x: f64) -> f64 {
+        (x / self.zoom).floor() * self.zoom
+    }
+
     pub fn world_to_screen(&self, pos: Coord, screen_size: (i32, i32)) -> (i32, i32) {
-        let cx = (screen_size.0 / 2) as f64;
-        let cy = (screen_size.1 / 2) as f64;
+        let zoom_i = self.zoom as i32;
+        let cx = ((screen_size.0 / (2 * zoom_i)) * zoom_i) as f64;
+        let cy = ((screen_size.1 / (2 * zoom_i)) * zoom_i) as f64;
 
         // Cell difference
         let dx = pos.x as f64 - self.x.floor();
         let dy = pos.y as f64 - self.y.floor();
 
         // Subtract half a cell to align the camera to cell corners
-        let sx = cx + (dx - 0.5) * self.zoom;
-        let sy = cy + (dy - 0.5) * self.zoom;
+        let sx = cx + dx * self.zoom;
+        let sy = cy + dy * self.zoom;
 
         (sx as i32, sy as i32)
     }
 
     pub fn screen_to_world(&self, pos: (i32, i32), screen_size: (i32, i32)) -> Coord {
-        let cx = (screen_size.0 as f64) * 0.5;
-        let cy = (screen_size.1 as f64) * 0.5;
+        let zoom_i = self.zoom as i32;
+        let cx = ((screen_size.0 / (2 * zoom_i)) * zoom_i) as f64;
+        let cy = ((screen_size.1 / (2 * zoom_i)) * zoom_i) as f64;
 
-        let dx_zoomed = (pos.0 as f64 - cx) / self.zoom;
-        let dy_zoomed = (pos.1 as f64 - cy) / self.zoom;
-
-        let dx = dx_zoomed + 0.5;
-        let dy = dy_zoomed + 0.5;
+        let dx = (pos.0 as f64 - cx) / self.zoom;
+        let dy = (pos.1 as f64 - cy) / self.zoom;
 
         let wx = self.x.floor() + dx;
         let wy = self.y.floor() + dy;
@@ -52,13 +55,6 @@ impl Camera {
             x: wx.floor() as i64,
             y: wy.floor() as i64,
         }
-    }
-
-    pub fn clamp_to_grid(&self, pos: (i32, i32)) -> (i32, i32) {
-        (
-            ((pos.0 as f64 / self.zoom).floor() * self.zoom) as i32,
-            ((pos.1 as f64 / self.zoom).floor() * self.zoom) as i32,
-        )
     }
 
     pub fn offset(&mut self, x: f64, y: f64) {
