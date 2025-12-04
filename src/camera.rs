@@ -20,13 +20,7 @@ impl Camera {
         }
     }
 
-    pub fn world_to_screen(&self, pos: &Coord, screen_size: &(i32, i32)) -> (i32, i32) {
-        // let cx = (screen_size.0 / 2) as f64;
-        // let cy = (screen_size.1 / 2) as f64;
-        // let sx = cx + (pos.x - self.x as i64) as f64 * self.zoom;
-        // let sy = cy + (pos.y - self.y as i64) as f64 * self.zoom;
-        // (sx as i32, sy as i32)
-
+    pub fn world_to_screen(&self, pos: Coord, screen_size: (i32, i32)) -> (i32, i32) {
         let cx = (screen_size.0 / 2) as f64;
         let cy = (screen_size.1 / 2) as f64;
 
@@ -41,15 +35,29 @@ impl Camera {
         (sx as i32, sy as i32)
     }
 
-    pub fn screen_to_world(&self, pos: &Coord) -> Coord {
-        // Convert screen coordinates back to world coordinates
-        let wx = self.x + (pos.x as f64 / self.zoom);
-        let wy = self.y + (pos.y as f64 / self.zoom);
+    pub fn screen_to_world(&self, pos: (i32, i32), screen_size: (i32, i32)) -> Coord {
+        let cx = (screen_size.0 as f64) * 0.5;
+        let cy = (screen_size.1 as f64) * 0.5;
 
-        // Round down to integer cell coordinates
-        Coord::new(
-            wx.floor() as i64,
-            wy.floor() as i64,
+        let dx_zoomed = (pos.0 as f64 - cx) / self.zoom;
+        let dy_zoomed = (pos.1 as f64 - cy) / self.zoom;
+
+        let dx = dx_zoomed + 0.5;
+        let dy = dy_zoomed + 0.5;
+
+        let wx = self.x.floor() + dx;
+        let wy = self.y.floor() + dy;
+
+        Coord {
+            x: wx.floor() as i64,
+            y: wy.floor() as i64,
+        }
+    }
+
+    pub fn clamp_to_grid(&self, pos: (i32, i32)) -> (i32, i32) {
+        (
+            ((pos.0 as f64 / self.zoom).floor() * self.zoom) as i32,
+            ((pos.1 as f64 / self.zoom).floor() * self.zoom) as i32,
         )
     }
 
