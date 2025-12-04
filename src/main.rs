@@ -3,7 +3,6 @@ mod coord;
 mod camera;
 
 use raylib::prelude::*;
-use coord::Coord;
 use grid::Grid;
 use camera::Camera;
 use std::time::{Duration, Instant};
